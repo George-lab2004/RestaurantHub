@@ -1,0 +1,54 @@
+﻿@model OrderDetailsViewModel
+
+@{
+    ViewData["Title"] = "Order placed";
+}
+
+<div class="alert alert-success">
+    Thank you! Your order <strong>#@Model.Id</strong> has been placed and is <strong>@Model.Status</strong>.
+</div>
+
+<div class="row g-4">
+    <div class="col-md-7">
+        <table class="table">
+            <thead>
+                <tr><th>Item</th><th>Qty</th><th class="text-end">Price</th><th class="text-end">Total</th></tr>
+            </thead>
+            <tbody>
+                @foreach (var line in Model.Lines)
+                {
+                    <tr>
+                        <td>@line.ItemName</td>
+                        <td>@line.Quantity</td>
+                        <td class="text-end">@line.UnitPrice.ToString("N2")</td>
+                        <td class="text-end">@line.LineTotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="ms-auto" style="max-width:300px">
+            <div class="d-flex justify-content-between"><span>Subtotal</span><span>@Model.Subtotal.ToString("N2") EGP</span></div>
+            <div class="d-flex justify-content-between"><span>Tax</span><span>@Model.Tax.ToString("N2") EGP</span></div>
+            <hr />
+            <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>@Model.TotalPrice.ToString("N2") EGP</span></div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Delivery details</h5>
+                <p class="mb-1"><strong>Placed:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</p>
+                <p class="mb-1"><strong>Address:</strong> @Model.DeliveryAddress</p>
+                <p class="mb-1"><strong>Phone:</strong> @Model.Phone</p>
+                <p class="mb-1"><strong>Payment:</strong> @Model.PaymentMethod</p>
+                @if (!string.IsNullOrWhiteSpace(Model.Notes))
+                {
+                    <p class="mb-0"><strong>Notes:</strong> @Model.Notes</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<a asp-controller="Menu" asp-action="Index" class="btn btn-outline-secondary mt-4">Back to menu</a>

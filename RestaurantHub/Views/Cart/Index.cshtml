@@ -1,0 +1,80 @@
+﻿@model CartViewModels
+
+@{
+    ViewData["Title"] = "Your Cart";
+}
+
+<h2 class="mb-4">Your Cart</h2>
+
+@if (Model.IsEmpty)
+{
+    <div class="alert alert-info">
+        Your cart is empty.
+        <a asp-controller="Menu" asp-action="Index" class="alert-link">Browse the menu</a>.
+    </div>
+}
+else
+{
+    <div class="row g-4">
+        <div class="col-md-8">
+            <table class="table align-middle">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th class="text-end">Price</th>
+                        <th style="width: 160px;">Quantity</th>
+                        <th class="text-end">Total</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.Name" class="rounded me-2" style="width:48px;height:48px;object-fit:cover;" />
+                                    }
+                                    <span>@item.Name</span>
+                                </div>
+                            </td>
+                            <td class="text-end">@item.UnitPrice.ToString("N2")</td>
+                            <td>
+                                <form asp-action="Update" method="post" class="d-flex">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
+                                    <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control form-control-sm me-1" style="width:70px;" />
+                                    <button type="submit" class="btn btn-sm btn-outline-secondary">Update</button>
+                                </form>
+                            </td>
+                            <td class="text-end">@item.LineTotal.ToString("N2")</td>
+                            <td class="text-end">
+                                <form asp-action="Remove" method="post">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="menuItemId" value="@item.MenuItemId" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Remove</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Order summary</h5>
+                    <div class="d-flex justify-content-between"><span>Subtotal</span><span>@Model.Subtotal.ToString("N2") EGP</span></div>
+                    <div class="d-flex justify-content-between"><span>Tax</span><span>@Model.Tax.ToString("N2") EGP</span></div>
+                    <hr />
+                    <div class="d-flex justify-content-between fw-bold"><span>Total</span><span>@Model.Total.ToString("N2") EGP</span></div>
+                    <a asp-controller="Orders" asp-action="Checkout" class="btn btn-primary w-100 mt-3">Proceed to checkout</a>
+                    <a asp-controller="Menu" asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Continue shopping</a>
+                </div>
+            </div>
+        </div>
+    </div>
+}
