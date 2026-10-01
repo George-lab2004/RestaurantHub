@@ -1,0 +1,62 @@
+﻿@model List<RestaurantHub.ViewModel.MenuItemListItemViewModel>
+
+@{
+    ViewData["Title"] = "Menu Items";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Menu Items</h2>
+    <a asp-action="Create" class="btn btn-primary">+ New Menu Item</a>
+</div>
+
+<table class="table table-hover align-middle">
+    <thead>
+        <tr>
+            <th style="width:80px">Image</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                    {
+                        <img src="@item.ImageUrl" alt="@item.Name" style="height:48px;width:48px;object-fit:cover;border-radius:6px;" />
+                    }
+                </td>
+                <td>@item.Name</td>
+                <td>@item.CategoryName</td>
+                <td>@item.Price.ToString("N2") EGP</td>
+                <td>
+                    @if (item.IsAvailable)
+                    {
+                        <span class="badge bg-success">Available</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-secondary">Hidden</span>
+                    }
+                </td>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Edit</a>
+                    <form asp-action="ToggleAvailability" asp-route-id="@item.Id" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-sm btn-outline-warning">
+                            @(item.IsAvailable ? "Hide" : "Show")
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <p class="text-muted">No menu items yet. Create a category first, then add items.</p>
+}

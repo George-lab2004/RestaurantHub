@@ -1,0 +1,46 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace RestaurantHub.Migrations
+{
+    /// <inheritdoc />
+    public partial class FixApplicationUser : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.RenameColumn(
+                name: "address",
+                table: "AspNetUsers",
+                newName: "Address");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "Address",
+                table: "AspNetUsers",
+                type: "nvarchar(max)",
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(max)");
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.RenameColumn(
+                name: "Address",
+                table: "AspNetUsers",
+                newName: "address");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "address",
+                table: "AspNetUsers",
+                type: "nvarchar(max)",
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "nvarchar(max)",
+                oldNullable: true);
+        }
+    }
+}

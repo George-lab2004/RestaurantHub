@@ -1,0 +1,22 @@
+﻿.account-container {
+    position: relative;
+    width: 100%;
+    background-image: url("/images/account.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    height:100vh; 
+}
+
+.account-box {
+    width: 100%;
+    max-width: 500px;
+    background: rgba(255, 255, 255, 0.94);
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}

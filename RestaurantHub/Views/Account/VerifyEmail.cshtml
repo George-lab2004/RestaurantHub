@@ -1,0 +1,50 @@
+﻿```cshtml
+@using RestaurantHub.ViewModel
+@model VerifyEmailViewModel
+
+@{
+    ViewData["Title"] = "Verify Email";
+    Layout = "_AccountLayout";
+}
+
+<div class="account-container">
+    <div class="account-box">
+
+        <h2 class="text-center mb-4">Verify Email</h2>
+
+        <p class="text-center text-muted mb-4">
+            Enter your email address to verify your account.
+        </p>
+
+        <form asp-action="VerifyEmail" method="post">
+
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" />
+                <span asp-validation-for="Email" class="text-danger"></span>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">
+                Verify Email
+            </button>
+
+            <div class="text-center mt-3">
+                <a asp-action="Login" asp-controller="Account"
+                   class="text-decoration-none">
+                    Back to Login
+                </a>
+            </div>
+
+        </form>
+
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
+```
