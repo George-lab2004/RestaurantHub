@@ -19,5 +19,6 @@ namespace RestaurantHub.Models
         public string? Notes { get; set; }
         public string PaymentMethod { get; set; } = "Cash";
         public List<OrderItem> OrderItems { get; set; } = new();
+        public List<OrderStatusHistory> StatusHistory { get; set; } = new();
     }
     }

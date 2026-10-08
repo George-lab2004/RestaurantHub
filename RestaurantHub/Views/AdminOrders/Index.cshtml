@@ -1,0 +1,68 @@
+﻿@model AdminOrderListViewModel
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2 class="mb-0">Orders</h2>
+    <form method="get" asp-action="Index">
+        <select name="status" class="form-select" onchange="this.form.submit()">
+            <option value="">All statuses</option>
+            @foreach (var s in Enum.GetValues<OrderStatus>())
+            {
+                <option value="@s" selected="@(Model.StatusFilter == s)">@s</option>
+            }
+        </select>
+    </form>
+</div>
+
+@if (!Model.Orders.Any())
+{
+    <p class="text-muted">No orders found.</p>
+}
+else
+{
+    <table class="table table-hover align-middle">
+        <thead>
+            <tr>
+                <th>Order</th><th>Date</th><th>Customer</th><th>Phone</th>
+                <th>Items</th><th>Total</th><th>Status</th><th></th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var o in Model.Orders)
+            {
+                <tr>
+                    <td>#@o.Id</td>
+                    <td>@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</td>
+                    <td>@o.CustomerName</td>
+                    <td>@o.Phone</td>
+                    <td>@o.ItemsCount</td>
+                    <td>@o.TotalPrice.ToString("N2") EGP</td>
+                    <td><partial name="_StatusBadge" model="o.Status" /></td>
+                    <td class="text-end">
+                        <a asp-action="Details" asp-route-id="@o.Id" class="btn btn-sm btn-outline-secondary">Open</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (Model.TotalPages > 1)
+    {
+        <nav>
+            <ul class="pagination">
+                <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-status="@Model.StatusFilter">Previous</a>
+                </li>
+                <li class="page-item disabled">
+                    <span class="page-link">Page @Model.Page of @Model.TotalPages</span>
+                </li>
+                <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-status="@Model.StatusFilter">Next</a>
+                </li>
+            </ul>
+        </nav>
+    }
+}

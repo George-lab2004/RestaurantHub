@@ -25,6 +25,104 @@ namespace RestaurantHub.Controllers
             _cart = cart;
         }
 
+        // ───────── MY ORDERS ─────────
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var orders = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.UserId == userId)                  // rule 9: only MY orders
+                .OrderByDescending(o => o.CreatedAt)             // newest first
+                .Select(o => new MyOrderListItemViewModel
+                {
+                    Id = o.Id,
+                    CreatedAt = o.CreatedAt,
+                    ItemsCount = o.OrderItems.Count,
+                    TotalPrice = o.TotalPrice,
+                    Status = o.Status
+                })
+                .ToListAsync();
+
+            return View(orders);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Details(int id)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            var order = await _context.Orders
+                .AsNoTracking()
+                .Where(o => o.Id == id && o.UserId == userId)    // id AND owner → otherwise 404 (IDOR protection)
+                .Select(o => new OrderDetailsViewModel
+                {
+                    Id = o.Id,
+                    CreatedAt = o.CreatedAt,
+                    Status = o.Status,
+                    DeliveryAddress = o.DeliveryAddress,
+                    Phone = o.Phone,
+                    PaymentMethod = o.PaymentMethod,
+                    Notes = o.Notes,
+                    Subtotal = o.Subtotal,
+                    Tax = o.Tax,
+                    TotalPrice = o.TotalPrice,
+                    Lines = o.OrderItems.Select(oi => new OrderLineViewModel
+                    {
+                        ItemName = oi.ItemName,
+                        Quantity = oi.Quantity,
+                        UnitPrice = oi.UnitPrice
+                    }).ToList(),
+                    History = o.StatusHistory
+                        .OrderBy(h => h.ChangedAt)
+                        .Select(h => new StatusHistoryItemViewModel   // no staff names for customers
+                        {
+                            Status = h.Status,
+                            ChangedAt = h.ChangedAt
+                        }).ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (order == null) return NotFound();
+
+            order.CanCancel = OrderRules.CanCustomerCancel(order.Status);   // computed from the rule, not stored
+            return View(order);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Cancel(int id)
+        {
+            var userId = _userManager.GetUserId(User)!;
+
+            var order = await _context.Orders                      // tracked: we are going to modify it
+                .FirstOrDefaultAsync(o => o.Id == id && o.UserId == userId);   // mine only
+            if (order == null) return NotFound();
+
+            if (!OrderRules.CanCustomerCancel(order.Status))        // the admin may have confirmed it a second ago
+            {
+                TempData["Error"] = "This order can no longer be cancelled.";
+                return RedirectToAction(nameof(Details), new { id });
+            }
+
+            order.Status = OrderStatus.Cancelled;
+            _context.OrderStatusHistories.Add(new OrderStatusHistory
+            {
+                OrderId = order.Id,
+                Status = OrderStatus.Cancelled,
+                ChangedAt = DateTime.UtcNow,
+                ChangedByUserId = userId
+            });
+
+            await _context.SaveChangesAsync();                      // status + history in ONE transaction
+
+            // Section 15: notify admins here (SignalR), AFTER the save
+            TempData["Success"] = "Your order was cancelled.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        // ───────── CHECKOUT ─────────
         [HttpGet]
         public async Task<IActionResult> Checkout()
         {
@@ -52,7 +150,7 @@ namespace RestaurantHub.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Checkout(CheckoutViewModel model)
         {
-            var cart = await _cart.BuildAsync();   // always rebuilt on the server
+            var cart = await _cart.BuildAsync();
             if (cart.IsEmpty)
             {
                 TempData["Error"] = "Your cart is empty.";
@@ -68,10 +166,13 @@ namespace RestaurantHub.Controllers
                 return View(model);
             }
 
+            var userId = _userManager.GetUserId(User)!;   // read once, reuse everywhere below
+            var now = DateTime.UtcNow;                    // one timestamp for the order and its first history row
+
             var order = new Order
             {
-                UserId = _userManager.GetUserId(User)!,
-                CreatedAt = DateTime.UtcNow,
+                UserId = userId,
+                CreatedAt = now,
                 Status = OrderStatus.Pending,
                 DeliveryAddress = model.DeliveryAddress.Trim(),
                 Phone = model.Phone.Trim(),
@@ -80,6 +181,15 @@ namespace RestaurantHub.Controllers
                 Subtotal = cart.Subtotal,
                 Tax = cart.Tax,
                 TotalPrice = cart.Total,
+                StatusHistory = new List<OrderStatusHistory>
+                {
+                    new OrderStatusHistory
+                    {
+                        Status = OrderStatus.Pending,
+                        ChangedAt = now,
+                        ChangedByUserId = userId          // ← THE FIX: a real user id, not ""
+                    }
+                },
                 OrderItems = cart.Items.Select(i => new OrderItem
                 {
                     MenuItemId = i.MenuItemId,
@@ -90,7 +200,7 @@ namespace RestaurantHub.Controllers
             };
 
             _context.Orders.Add(order);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();            // order + items + first history row, one transaction
 
             _cart.Clear();
 

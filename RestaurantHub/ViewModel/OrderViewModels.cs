@@ -46,6 +46,9 @@ namespace RestaurantHub.ViewModel
         public decimal Subtotal { get; set; }
         public decimal Tax { get; set; }
         public decimal TotalPrice { get; set; }
+
+        public List<StatusHistoryItemViewModel> History { get; set; } = new();   
+        public bool CanCancel { get; set; }
         public List<OrderLineViewModel> Lines { get; set; } = new();
     }
 }

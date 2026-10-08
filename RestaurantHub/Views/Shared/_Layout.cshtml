@@ -35,6 +35,9 @@
                         <li class="nav-item">
                             <a class="nav-link text-dark" asp-controller="MenuItems" asp-action="Index">Menu Items</a>
                         </li>
+                        <li class="nav-item">
+    <a class="nav-link text-dark" asp-controller="AdminOrders" asp-action="Index">Orders</a>
+</li>
                     }
                     else
                     {
@@ -43,6 +46,12 @@
                                 Cart @if (cartCount > 0) { <span class="badge bg-primary">@cartCount</span> }
                             </a>
                         </li>
+                        @if (User.IsInRole("Customer"))
+{
+    <li class="nav-item">
+        <a class="nav-link text-dark" asp-controller="Orders" asp-action="Index">My Orders</a>
+    </li>
+}
                     }
                 </ul>
 

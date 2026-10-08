@@ -12,6 +12,7 @@ namespace RestaurantHub.Models
         public DbSet<MenuItem> MenuItems { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
@@ -34,6 +35,16 @@ namespace RestaurantHub.Models
             builder.Entity<Category>()
     .HasIndex(c => c.Name)
     .IsUnique();
+
+            builder.Entity<OrderStatusHistory>()
+    .HasOne(h => h.Order).WithMany(o => o.StatusHistory)
+    .HasForeignKey(h => h.OrderId)
+    .OnDelete(DeleteBehavior.Cascade);     // history has no meaning without its order
+
+            builder.Entity<OrderStatusHistory>()
+        .HasOne(h => h.ChangedBy).WithMany()
+        .HasForeignKey(h => h.ChangedByUserId)
+        .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

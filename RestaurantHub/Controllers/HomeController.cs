@@ -21,5 +21,7 @@ namespace RestaurantHub.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public IActionResult Boom() => throw new InvalidOperationException("Test exception");
     }
 }

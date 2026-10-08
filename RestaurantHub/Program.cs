@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using RestaurantHub.Middleware;
 using RestaurantHub.Models;
 using RestaurantHub.Services;
+using RestaurantHub.Middleware;                    
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -43,13 +45,16 @@ using (var scope = app.Services.CreateScope())
     await DbSeeder.SeedAsync(scope.ServiceProvider);
 }
 
-// Configure the HTTP request pipeline.
+
+app.UseMiddleware<RequestLoggingMiddleware>();       // FIRST (outermost)
+app.UseMiddleware<ExceptionHandlingMiddleware>();    // SECOND
+
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-    app.UseHsts();
+    app.UseHsts();                                   // keep this; UseExceptionHandler is gone: our middleware replaces it
 }
+
+
 
 app.UseHttpsRedirection();
 app.UseRouting();
